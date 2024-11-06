@@ -5,11 +5,10 @@ mapboxgl.accessToken = mapboxToken;
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
-    center: [-98.5795, 39.8283], // Centered on USA
+    center: [-98.5795, 39.8283],
     zoom: 3
 });
 
-// Emission factors in kg CO₂ per km for each mode of transport
 const emissionFactors = {
     electricVehicle: 0.02,
     bus: 0.1,
@@ -19,7 +18,6 @@ const emissionFactors = {
     walking: 0.0
 };
 
-// Everyday items and their carbon footprints in kg CO₂
 const everydayItems = [
     { name: 'plastic bottle', footprint: 0.08 },
     { name: 'burger', footprint: 2.5 },
@@ -29,22 +27,20 @@ const everydayItems = [
     { name: 'one-way flight from NYC to LA per passenger', footprint: 900 }
 ];
 
-// Define the emission factor for the greenest commute option (walking or biking)
-const greenOptionEmissionFactor = emissionFactors.walking; // 0 kg CO₂ per km
+const greenOptionEmissionFactor = emissionFactors.walking;
 
-// Function to calculate cumulative savings over different time periods
+// Calculate cumulative savings over time
 function calculateSavingsOverTime(currentEmissions, greenEmissions) {
     const savingsPerTrip = currentEmissions - greenEmissions;
-
     return {
-        weekly: savingsPerTrip * 5,        // Assuming 5 commute days in a week
-        monthly: savingsPerTrip * 20,      // Assuming 20 commute days in a month
-        yearly: savingsPerTrip * 240,      // Assuming 240 commute days in a year
-        fiveYears: savingsPerTrip * 1200   // Assuming 1200 commute days in five years
+        weekly: savingsPerTrip * 5,
+        monthly: savingsPerTrip * 20,
+        yearly: savingsPerTrip * 240,
+        fiveYears: savingsPerTrip * 1200
     };
 }
 
-// Function to find the closest item for comparison
+// Find the closest comparison item
 function findClosestComparison(totalEmissions) {
     let closestItem = everydayItems[0];
     let smallestDifference = Math.abs(totalEmissions - closestItem.footprint);
@@ -59,13 +55,62 @@ function findClosestComparison(totalEmissions) {
     return closestItem;
 }
 
-// Main function to calculate total emissions and potential savings
+// Get coordinates from Mapbox Geocoding API
+async function getCoordinates(location) {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+        return data.features[0].geometry.coordinates;
+    } else {
+        console.error(`No coordinates found for location: ${location}`);
+        return null;
+    }
+}
+
+// Get route distance and plot on the map
+async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
+    const mapboxMode = mode === 'electricVehicle' ? 'cycling' :
+                       mode === 'publicTransport' ? 'driving' :
+                       mode === 'regularCar' ? 'driving' : 'walking';
+
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${mapboxMode}/${startCoords.join(',')};${endCoords.join(',')}?access_token=${mapboxToken}&geometries=geojson`;
+    const response = await fetch(url);
+    const data = await response.json();
+    const distance = data.routes[0].distance / 1000;
+
+    const route = data.routes[0].geometry;
+    map.addLayer({
+        id: `route-${Math.random()}`,
+        type: 'line',
+        source: {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                geometry: route
+            }
+        },
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': legColor,
+            'line-width': 5
+        }
+    });
+
+    new mapboxgl.Marker().setLngLat(startCoords).addTo(map);
+    new mapboxgl.Marker().setLngLat(endCoords).addTo(map);
+
+    return distance;
+}
+
+// Calculate total emissions and display results
 async function calculateImpact() {
     const commuteLegElements = document.querySelectorAll('.commute-leg');
     let totalEmissions = 0;
     let greenEmissions = 0;
-
-    // Array to store all coordinates for map zooming
     const allCoordinates = [];
 
     for (const leg of commuteLegElements) {
@@ -74,57 +119,31 @@ async function calculateImpact() {
         const mode = leg.querySelector('.mode').value;
         const transitType = leg.querySelector('.transitType') ? leg.querySelector('.transitType').value : null;
 
-        // Determine the specific emission factor for this leg
-        let emissionFactor;
-        if (mode === 'publicTransport') {
-            emissionFactor = emissionFactors[transitType];
-        } else {
-            emissionFactor = emissionFactors[mode];
-        }
+        let emissionFactor = mode === 'publicTransport' ? emissionFactors[transitType] : emissionFactors[mode];
+        emissionFactor = emissionFactor !== undefined ? emissionFactor : 0.0;
 
-        if (emissionFactor === undefined) {
-            emissionFactor = 0.0;
-        }
-
-        // Log a warning only if it's not expected (i.e., not walking or transitType issues)
-        if (emissionFactor === 0.0 && mode !== "walking") {
-            console.warn(`No emission factor found for mode: ${mode}`);
-            continue;
-        }
-
-        // Fetch coordinates and calculate route distance
         const startCoords = await getCoordinates(startLocation);
         if (!startCoords) continue;
 
         const endCoords = await getCoordinates(endLocation);
         if (!endCoords) continue;
 
-        // Store start and end coordinates
         allCoordinates.push(startCoords, endCoords);
-
-        const legColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color for each leg
+        const legColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
         const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
 
-        // Calculate emissions for the current mode and the green option
-        const emissions = distance * emissionFactor;
-        const greenLegEmissions = distance * greenOptionEmissionFactor;
-        totalEmissions += emissions;
-        greenEmissions += greenLegEmissions;
+        totalEmissions += distance * emissionFactor;
+        greenEmissions += distance * greenOptionEmissionFactor;
     }
 
-    // Zoom map to fit all coordinates
     if (allCoordinates.length > 0) {
         const bounds = allCoordinates.reduce((bounds, coord) => bounds.extend(coord), new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
         map.fitBounds(bounds, { padding: 50 });
     }
 
-    // Find the closest everyday item comparison
     const closestItem = findClosestComparison(totalEmissions);
-
-    // Calculate cumulative savings
     const savings = calculateSavingsOverTime(totalEmissions, greenEmissions);
 
-    // Display results with comparison and cumulative savings
     document.getElementById('results').innerHTML = `
         <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
         <p>That's roughly equivalent to the carbon footprint of ${closestItem.footprint} kg CO₂ for a ${closestItem.name}.</p>
