@@ -10,94 +10,77 @@ const map = new mapboxgl.Map({
     zoom: 3
 });
 
-// Function to add a new commute leg section
+// Function to add address prediction
+function initAutocomplete(input) {
+    input.addEventListener('input', async () => {
+        const query = input.value;
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&autocomplete=true&limit=5`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Clear any existing suggestions
+        const datalist = document.createElement('datalist');
+        datalist.id = `autocomplete-${input.classList[0]}`;
+        data.features.forEach((feature) => {
+            const option = document.createElement('option');
+            option.value = feature.place_name;
+            datalist.appendChild(option);
+        });
+        input.appendChild(datalist);
+        input.setAttribute('list', datalist.id);
+    });
+}
+
+// Toggle visibility of transit type selection based on mode
+function toggleTransitType(select) {
+    const transitTypeDiv = select.closest('.commute-leg').querySelector('.transit-type');
+    transitTypeDiv.style.display = select.value === 'publicTransport' ? 'block' : 'none';
+}
+
+// Add a new commute leg section
 function addCommuteLeg() {
     const commuteLegs = document.getElementById('commuteLegs');
     const newLeg = document.createElement('div');
     newLeg.classList.add('commute-leg');
     newLeg.innerHTML = `
         <label for="start">Start Location:</label>
-        <input type="text" class="start" placeholder="Enter start location">
+        <input type="text" class="start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
 
         <label for="end">End Location:</label>
-        <input type="text" class="end" placeholder="Enter end location">
+        <input type="text" class="end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
 
         <label for="mode">Mode of Transportation:</label>
-        <select class="mode">
+        <select class="mode" onchange="toggleTransitType(this)">
             <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
             <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
             <option value="walking">Walking</option>
             <option value="regularCar">Regular Automobile</option>
         </select>
+
+        <div class="transit-type" style="display: none;">
+            <label for="transitType">Transit Type:</label>
+            <select class="transitType">
+                <option value="bus">Bus</option>
+                <option value="train">Train</option>
+                <option value="subway">Subway</option>
+            </select>
+        </div>
     `;
     commuteLegs.appendChild(newLeg);
 }
 
-// Function to get coordinates from an address using Mapbox Geocoding API
-async function getCoordinates(location) {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data.features[0].geometry.coordinates; // returns [longitude, latitude]
-}
-
-// Function to calculate route distance between two coordinates using Mapbox Directions API
-async function getRouteDistance(startCoords, endCoords, mode, legColor) {
-    const mapboxMode = mode === 'electricVehicle' ? 'cycling' :
-                       mode === 'publicTransport' ? 'driving' :
-                       mode === 'regularCar' ? 'driving' : 'walking';
-
-    const url = `https://api.mapbox.com/directions/v5/mapbox/${mapboxMode}/${startCoords.join(',')};${endCoords.join(',')}?access_token=${mapboxToken}&geometries=geojson`;
-    const response = await fetch(url);
-    const data = await response.json();
-    const distance = data.routes[0].distance / 1000; // distance in kilometers
-
-    // Plot route on map
-    const route = data.routes[0].geometry;
-    map.addLayer({
-        id: `route-${Math.random()}`,
-        type: 'line',
-        source: {
-            type: 'geojson',
-            data: {
-                type: 'Feature',
-                geometry: route
-            }
-        },
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': legColor,
-            'line-width': 5
-        }
-    });
-
-    // Add start and end markers
-    new mapboxgl.Marker().setLngLat(startCoords).addTo(map);
-    new mapboxgl.Marker().setLngLat(endCoords).addTo(map);
-
-    return distance;
-}
-
-// Function to calculate emissions using Carbon Interface API
-async function calculateEmissions(distance, mode) {
+// Calculate emissions based on the selected transit type
+async function calculateEmissions(distance, mode, transitType = null) {
     let vehicleType;
-    switch (mode) {
-        case 'electricVehicle':
-            vehicleType = 'electric_vehicle';
-            break;
-        case 'regularCar':
-            vehicleType = 'passenger_vehicle';
-            break;
-        case 'publicTransport':
-            vehicleType = 'bus'; // Assuming bus for public transport
-            break;
-        case 'walking':
-            return 0; // No emissions for walking
-        default:
-            return 0;
+    if (mode === 'publicTransport') {
+        vehicleType = transitType === 'train' ? 'train' : 
+                      transitType === 'subway' ? 'subway' : 'bus';
+    } else if (mode === 'electricVehicle') {
+        vehicleType = 'electric_vehicle';
+    } else if (mode === 'regularCar') {
+        vehicleType = 'passenger_vehicle';
+    } else {
+        return 0; // No emissions for walking
     }
 
     const url = 'https://www.carboninterface.com/api/v1/estimates';
@@ -130,16 +113,15 @@ async function calculateImpact() {
         const startLocation = leg.querySelector('.start').value;
         const endLocation = leg.querySelector('.end').value;
         const mode = leg.querySelector('.mode').value;
+        const transitType = leg.querySelector('.transitType') ? leg.querySelector('.transitType').value : null;
 
         // Fetch coordinates and calculate route distance
         const startCoords = await getCoordinates(startLocation);
         const endCoords = await getCoordinates(endLocation);
-        const legColor = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random color for each leg
+        const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, `#${Math.floor(Math.random()*16777215).toString(16)}`);
 
-        const distance = await getRouteDistance(startCoords, endCoords, mode, legColor);
-
-        // Calculate emissions using Carbon Interface API
-        const emissions = await calculateEmissions(distance, mode);
+        // Calculate emissions with transit type accounted for
+        const emissions = await calculateEmissions(distance, mode, transitType);
         totalEmissions += emissions;
     }
 
