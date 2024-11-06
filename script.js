@@ -1,4 +1,5 @@
 const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
+const carbonInterfaceApiKey = 'VyVFtne2m9RXuiTFwoyhA';
 mapboxgl.accessToken = mapboxToken;
 
 // Initialize Mapbox map
@@ -9,15 +10,7 @@ const map = new mapboxgl.Map({
     zoom: 3
 });
 
-// Emission factors in kg CO2 per km for each mode of transport
-const emissionFactors = {
-    electricVehicle: 0.02,
-    publicTransport: 0.06,
-    walking: 0,
-    regularCar: 0.21
-};
-
-// Add a new commute leg section
+// Function to add a new commute leg section
 function addCommuteLeg() {
     const commuteLegs = document.getElementById('commuteLegs');
     const newLeg = document.createElement('div');
@@ -40,7 +33,7 @@ function addCommuteLeg() {
     commuteLegs.appendChild(newLeg);
 }
 
-// Convert an address to coordinates using Mapbox Geocoding API
+// Function to get coordinates from an address using Mapbox Geocoding API
 async function getCoordinates(location) {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}`;
     const response = await fetch(url);
@@ -48,8 +41,8 @@ async function getCoordinates(location) {
     return data.features[0].geometry.coordinates; // returns [longitude, latitude]
 }
 
-// Get the route distance and plot it on the map
-async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
+// Function to calculate route distance between two coordinates using Mapbox Directions API
+async function getRouteDistance(startCoords, endCoords, mode, legColor) {
     const mapboxMode = mode === 'electricVehicle' ? 'cycling' :
                        mode === 'publicTransport' ? 'driving' :
                        mode === 'regularCar' ? 'driving' : 'walking';
@@ -88,6 +81,46 @@ async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
     return distance;
 }
 
+// Function to calculate emissions using Carbon Interface API
+async function calculateEmissions(distance, mode) {
+    let vehicleType;
+    switch (mode) {
+        case 'electricVehicle':
+            vehicleType = 'electric_vehicle';
+            break;
+        case 'regularCar':
+            vehicleType = 'passenger_vehicle';
+            break;
+        case 'publicTransport':
+            vehicleType = 'bus'; // Assuming bus for public transport
+            break;
+        case 'walking':
+            return 0; // No emissions for walking
+        default:
+            return 0;
+    }
+
+    const url = 'https://www.carboninterface.com/api/v1/estimates';
+    const body = {
+        type: 'vehicle',
+        distance_unit: 'km',
+        distance_value: distance,
+        vehicle_model_id: vehicleType
+    };
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${carbonInterfaceApiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data = await response.json();
+    return data.data.attributes.carbon_kg; // Emissions in kg CO2
+}
+
 // Main function to calculate total emissions
 async function calculateImpact() {
     const commuteLegElements = document.querySelectorAll('.commute-leg');
@@ -103,10 +136,10 @@ async function calculateImpact() {
         const endCoords = await getCoordinates(endLocation);
         const legColor = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random color for each leg
 
-        const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
+        const distance = await getRouteDistance(startCoords, endCoords, mode, legColor);
 
-        // Calculate emissions based on distance and mode
-        const emissions = distance * (emissionFactors[mode] || 0);
+        // Calculate emissions using Carbon Interface API
+        const emissions = await calculateEmissions(distance, mode);
         totalEmissions += emissions;
     }
 
