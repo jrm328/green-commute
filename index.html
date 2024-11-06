@@ -4,52 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green Commute</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-o/Y6S7hgO7G69+vUN7AsMQPvAdMOXj6p/3FJ3I1hMSOe7xYyD4jydpG9F5LTjqm7" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Green Commute Calculator</h1>
-    <form id="commuteForm">
-        <div id="commuteLegs">
-            <h3>Commute Legs</h3>
-            <div class="commute-leg">
-                <label for="start">Start Location:</label>
-                <input type="text" class="start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
 
-                <label for="end">End Location:</label>
-                <input type="text" class="end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Green Commute Calculator</h1>
 
-                <label for="mode">Mode of Transportation:</label>
-                <select class="mode" onchange="toggleTransitType(this)">
-                    <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
-                    <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
-                    <option value="walking">Walking</option>
-                    <option value="regularCar">Regular Automobile</option>
-                </select>
-
-                <div class="transit-type" style="display: none;">
-                    <label for="transitType">Transit Type:</label>
-                    <select class="transitType">
-                        <option value="bus">Bus</option>
-                        <option value="train">Train</option>
-                        <option value="subway">Subway</option>
-                    </select>
+        <form id="commuteForm">
+            <div id="commuteLegs" class="mb-3">
+                <h3 class="mb-3">Commute Legs</h3>
+                <div class="commute-leg row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="start" class="form-label">Start Location:</label>
+                        <input type="text" class="form-control start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end" class="form-label">End Location:</label>
+                        <input type="text" class="form-control end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="mode" class="form-label">Mode of Transportation:</label>
+                        <select class="form-select mode" onchange="toggleTransitType(this)">
+                            <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
+                            <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
+                            <option value="walking">Walking</option>
+                            <option value="regularCar">Regular Automobile</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 transit-type mt-3" style="display: none;">
+                        <label for="transitType" class="form-label">Transit Type:</label>
+                        <select class="form-select transitType">
+                            <option value="bus">Bus</option>
+                            <option value="train">Train</option>
+                            <option value="subway">Subway</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-3">
+                        <button type="button" class="btn btn-danger" onclick="removeCommuteLeg(this)">Remove Leg</button>
+                    </div>
                 </div>
-                <button type="button" class="remove-leg" onclick="removeCommuteLeg(this)">Remove Leg</button>
             </div>
-        </div>
 
-        <button type="button" onclick="addCommuteLeg()">Add Another Leg</button>
-        <button type="button" onclick="calculateImpact()">Calculate Impact</button>
-        <button type="button" onclick="resetForm()">Reset Form</button>
-    </form>
-    
-    <!-- Map to display routes -->
-    <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+            <button type="button" class="btn btn-primary mb-3" onclick="addCommuteLeg()">Add Another Leg</button>
+            <button type="button" class="btn btn-success mb-3" onclick="calculateImpact()">Calculate Impact</button>
+            <button type="button" class="btn btn-secondary mb-3" onclick="resetForm()">Reset Form</button>
+        </form>
 
-    <!-- Results section -->
-    <div id="results"></div>
+        <div id="map" class="mb-5" style="width: 100%; height: 400px;"></div>
 
-    <!-- Mapbox GL JS and custom JavaScript -->
+        <div id="results" class="alert alert-info"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 bg-light">
+        <p>Created by J.McLauchlan. <a href="https://github.com/jrm328/green-commute" target="_blank">View this project on GitHub</a></p>
+    </footer>
+
+    <!-- Bootstrap JS and Mapbox GL JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pM05Y7H8OA95M4TQ53IHq/C82IGWJ8VXktJjEjtvQQHT8sbtroWbS9T4HTAiQs8C" crossorigin="anonymous"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
     <script src="script.js"></script>
