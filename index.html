@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Commute Calculator</title>
+    <title>Green Commute</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,18 +13,27 @@
             <h3>Commute Legs</h3>
             <div class="commute-leg">
                 <label for="start">Start Location:</label>
-                <input type="text" class="start" placeholder="Enter start location">
+                <input type="text" class="start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
 
                 <label for="end">End Location:</label>
-                <input type="text" class="end" placeholder="Enter end location">
+                <input type="text" class="end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
 
                 <label for="mode">Mode of Transportation:</label>
-                <select class="mode">
+                <select class="mode" onchange="toggleTransitType(this)">
                     <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
                     <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
                     <option value="walking">Walking</option>
                     <option value="regularCar">Regular Automobile</option>
                 </select>
+
+                <div class="transit-type" style="display: none;">
+                    <label for="transitType">Transit Type:</label>
+                    <select class="transitType">
+                        <option value="bus">Bus</option>
+                        <option value="train">Train</option>
+                        <option value="subway">Subway</option>
+                    </select>
+                </div>
             </div>
         </div>
 
