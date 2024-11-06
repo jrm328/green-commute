@@ -188,7 +188,13 @@ async function calculateImpact() {
             emissionFactor = emissionFactors[mode];
         }
 
-        if (!emissionFactor) {
+        // Set a default emission factor of 0.0 if undefined (e.g., for walking)
+        if (emissionFactor === undefined) {
+            emissionFactor = 0.0;
+        }
+
+        // Log a warning only if it's not expected (i.e., not walking or transitType issues)
+        if (emissionFactor === 0.0 && mode !== "walking") {
             console.warn(`No emission factor found for mode: ${mode}`);
             continue;
         }
@@ -200,7 +206,7 @@ async function calculateImpact() {
         const endCoords = await getCoordinates(endLocation);
         if (!endCoords) continue;
 
-        const legColor = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random color for each leg
+        const legColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color for each leg
         const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
 
         // Calculate emissions
