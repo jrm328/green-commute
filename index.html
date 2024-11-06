@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Commute Calculator</title>
+    <title>Green Commute</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -42,8 +42,14 @@
         <button type="button" onclick="calculateImpact()">Calculate Impact</button>
         <button type="button" onclick="resetForm()">Reset Form</button>
     </form>
+    
+    <!-- Map to display routes -->
     <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+
+    <!-- Results section -->
     <div id="results"></div>
+
+    <!-- Mapbox GL JS and custom JavaScript -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
     <script src="script.js"></script>
