@@ -33,31 +33,40 @@ const greenOptionEmissionFactor = emissionFactors.walking;
 function addCommuteLeg() {
     const commuteLegs = document.getElementById('commuteLegs');
     const newLeg = document.createElement('div');
-    newLeg.classList.add('commute-leg');
+    newLeg.classList.add('commute-leg', 'row', 'g-3', 'mb-3');
     newLeg.innerHTML = `
-        <label for="start">Start Location:</label>
-        <input type="text" class="start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
-
-        <label for="end">End Location:</label>
-        <input type="text" class="end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
-
-        <label for="mode">Mode of Transportation:</label>
-        <select class="mode" onchange="toggleTransitType(this)">
-            <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
-            <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
-            <option value="walking">Walking</option>
-            <option value="regularCar">Regular Automobile</option>
-        </select>
-
-        <div class="transit-type" style="display: none;">
-            <label for="transitType">Transit Type:</label>
-            <select class="transitType">
+        <div class="col-md-4">
+            <label for="start" class="form-label">Start Location:</label>
+            <mapbox-address-autofill access-token="${mapboxToken}">
+                <input type="text" class="form-control start location-input" placeholder="Enter start location" autocomplete="shipping address-line1">
+            </mapbox-address-autofill>
+        </div>
+        <div class="col-md-4">
+            <label for="end" class="form-label">End Location:</label>
+            <mapbox-address-autofill access-token="${mapboxToken}">
+                <input type="text" class="form-control end location-input" placeholder="Enter end location" autocomplete="shipping address-line1">
+            </mapbox-address-autofill>
+        </div>
+        <div class="col-md-4">
+            <label for="mode" class="form-label">Mode of Transportation:</label>
+            <select class="form-select mode" onchange="toggleTransitType(this)">
+                <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
+                <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
+                <option value="walking">Walking</option>
+                <option value="regularCar">Regular Automobile</option>
+            </select>
+        </div>
+        <div class="col-md-4 transit-type mt-3" style="display: none;">
+            <label for="transitType" class="form-label">Transit Type:</label>
+            <select class="form-select transitType">
                 <option value="bus">Bus</option>
                 <option value="train">Train</option>
                 <option value="subway">Subway</option>
             </select>
         </div>
-        <button type="button" class="remove-leg" onclick="removeCommuteLeg(this)">Remove Leg</button>
+        <div class="col-md-4 mt-3">
+            <button type="button" class="btn btn-danger" onclick="removeCommuteLeg(this)">Remove Leg</button>
+        </div>
     `;
     commuteLegs.appendChild(newLeg);
 }
@@ -192,7 +201,7 @@ async function calculateImpact() {
     document.getElementById('results').innerHTML = `
         <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
         <p>That's roughly equivalent to the carbon footprint of ${closestItem.footprint} kg CO₂ for a ${closestItem.name}.</p>
-        <p>Potential savings if you switch to a greener option:</p>
+        <p>Potential savings if you contine this commute option:</p>
         <ul>
             <li>Weekly: ${savings.weekly.toFixed(2)} kg CO₂</li>
             <li>Monthly: ${savings.monthly.toFixed(2)} kg CO₂</li>
