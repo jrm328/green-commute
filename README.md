@@ -1,3 +1,4 @@
+
 # Green Commute
 
 ## Project Overview
@@ -27,3 +28,39 @@ The Green Commute is a tool that helps users measure the environmental impact of
    ```bash
    git clone https://github.com/yourusername/green-commute-calculator.git
    cd green-commute-calculator
+   ```
+
+2. **Obtain a Mapbox API Key:**
+   - Sign up on [Mapbox](https://www.mapbox.com/) and generate an API key.
+   - Update `script.js` with your Mapbox token.
+
+3. **Run the Project Locally:**
+   - Open `index.html` in your browser to test the application locally.
+
+4. **Deploy on GitHub Pages:**
+   - Push the repository to GitHub and enable GitHub Pages in the repository settings.
+
+## Usage
+1. Open the [Green Commute Calculator](https://yourusername.github.io/green-commute-calculator).
+2. Enter the starting point and distances for each leg of your commute.
+3. Click "Calculate Impact" to view the total emissions and breakdown by commute mode.
+
+## Project Structure
+```plaintext
+green-commute-calculator/
+│
+├── index.html          # Main HTML structure
+├── style.css           # Basic styling for the page
+├── script.js           # JavaScript logic for API calls and emissions calculation
+└── README.md           # Project documentation
+```
+
+## Contributing
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or new features.
+
+## License
+This project is licensed under the MIT License.
+
+## Acknowledgments
+- **Mapbox** for route calculations and mapping services.
+- **Make.com** for automation and Google Sheets integration.
