@@ -65,6 +65,9 @@ async function calculateImpact() {
     let totalEmissions = 0;
     let greenEmissions = 0;
 
+    // Array to store all coordinates for map zooming
+    const allCoordinates = [];
+
     for (const leg of commuteLegElements) {
         const startLocation = leg.querySelector('.start').value;
         const endLocation = leg.querySelector('.end').value;
@@ -96,6 +99,9 @@ async function calculateImpact() {
         const endCoords = await getCoordinates(endLocation);
         if (!endCoords) continue;
 
+        // Store start and end coordinates
+        allCoordinates.push(startCoords, endCoords);
+
         const legColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Random color for each leg
         const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
 
@@ -104,6 +110,12 @@ async function calculateImpact() {
         const greenLegEmissions = distance * greenOptionEmissionFactor;
         totalEmissions += emissions;
         greenEmissions += greenLegEmissions;
+    }
+
+    // Zoom map to fit all coordinates
+    if (allCoordinates.length > 0) {
+        const bounds = allCoordinates.reduce((bounds, coord) => bounds.extend(coord), new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
+        map.fitBounds(bounds, { padding: 50 });
     }
 
     // Find the closest everyday item comparison
