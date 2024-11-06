@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green Commute</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-o/Y6S7hgO7G69+vUN7AsMQPvAdMOXj6p/3FJ3I1hMSOe7xYyD4jydpG9F5LTjqm7" crossorigin="anonymous">
+    <!-- Mapbox CSS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+    <!-- Mapbox Search JS for Address Autofill -->
+    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0-beta.21/web.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,11 +23,15 @@
                 <div class="commute-leg row g-3 mb-3">
                     <div class="col-md-4">
                         <label for="start" class="form-label">Start Location:</label>
-                        <input type="text" class="form-control start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
+                        <mapbox-address-autofill access-token="pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ">
+                            <input type="text" class="form-control start location-input" placeholder="Enter start location" autocomplete="shipping address-line1">
+                        </mapbox-address-autofill>
                     </div>
                     <div class="col-md-4">
                         <label for="end" class="form-label">End Location:</label>
-                        <input type="text" class="form-control end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
+                        <mapbox-address-autofill access-token="pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ">
+                            <input type="text" class="form-control end location-input" placeholder="Enter end location" autocomplete="shipping address-line1">
+                        </mapbox-address-autofill>
                     </div>
                     <div class="col-md-4">
                         <label for="mode" class="form-label">Mode of Transportation:</label>
@@ -59,13 +68,12 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 bg-light">
-        <p>Created by J.McLauchlan. <a href="https://github.com/jrm328/green-commute" target="_blank">View this project on GitHub</a></p>
+        <p>Created by Joseph McLauchlan. <a href="https://github.com/jrm328/green-commute" target="_blank">View this project on GitHub</a></p>
     </footer>
 
     <!-- Bootstrap JS and Mapbox GL JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pM05Y7H8OA95M4TQ53IHq/C82IGWJ8VXktJjEjtvQQHT8sbtroWbS9T4HTAiQs8C" crossorigin="anonymous"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
     <script src="script.js"></script>
 </body>
 </html>
