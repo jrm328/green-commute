@@ -69,6 +69,66 @@ function addCommuteLeg() {
     commuteLegs.appendChild(newLeg);
 }
 
+// Function to get coordinates from an address using Mapbox Geocoding API
+async function getCoordinates(location) {
+    try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Check if data has results and return coordinates, else log an error
+        if (data.features && data.features.length > 0) {
+            return data.features[0].geometry.coordinates; // returns [longitude, latitude]
+        } else {
+            console.error(`No coordinates found for location: ${location}`);
+            return null; // or handle it as needed
+        }
+    } catch (error) {
+        console.error("Error fetching coordinates:", error);
+        return null; // or handle the error accordingly
+    }
+}
+
+// Function to calculate route distance between two coordinates using Mapbox Directions API
+async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
+    const mapboxMode = mode === 'electricVehicle' ? 'cycling' :
+                       mode === 'publicTransport' ? 'driving' :
+                       mode === 'regularCar' ? 'driving' : 'walking';
+
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${mapboxMode}/${startCoords.join(',')};${endCoords.join(',')}?access_token=${mapboxToken}&geometries=geojson`;
+    const response = await fetch(url);
+    const data = await response.json();
+    const distance = data.routes[0].distance / 1000; // distance in kilometers
+
+    // Plot route on map
+    const route = data.routes[0].geometry;
+    map.addLayer({
+        id: `route-${Math.random()}`,
+        type: 'line',
+        source: {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                geometry: route
+            }
+        },
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': legColor,
+            'line-width': 5
+        }
+    });
+
+    // Add start and end markers
+    new mapboxgl.Marker().setLngLat(startCoords).addTo(map);
+    new mapboxgl.Marker().setLngLat(endCoords).addTo(map);
+
+    return distance;
+}
+
 // Calculate emissions based on the selected transit type
 async function calculateEmissions(distance, mode, transitType = null) {
     let vehicleType;
@@ -117,8 +177,13 @@ async function calculateImpact() {
 
         // Fetch coordinates and calculate route distance
         const startCoords = await getCoordinates(startLocation);
+        if (!startCoords) continue; // Skip if coordinates are not available
+
         const endCoords = await getCoordinates(endLocation);
-        const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, `#${Math.floor(Math.random()*16777215).toString(16)}`);
+        if (!endCoords) continue; // Skip if coordinates are not available
+
+        const legColor = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random color for each leg
+        const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
 
         // Calculate emissions with transit type accounted for
         const emissions = await calculateEmissions(distance, mode, transitType);
