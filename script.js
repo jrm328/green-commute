@@ -29,30 +29,49 @@ const everydayItems = [
 
 const greenOptionEmissionFactor = emissionFactors.walking;
 
-// Calculate cumulative savings over time
-function calculateSavingsOverTime(currentEmissions, greenEmissions) {
-    const savingsPerTrip = currentEmissions - greenEmissions;
-    return {
-        weekly: savingsPerTrip * 5,
-        monthly: savingsPerTrip * 20,
-        yearly: savingsPerTrip * 240,
-        fiveYears: savingsPerTrip * 1200
-    };
+// Function to add a new commute leg section
+function addCommuteLeg() {
+    const commuteLegs = document.getElementById('commuteLegs');
+    const newLeg = document.createElement('div');
+    newLeg.classList.add('commute-leg');
+    newLeg.innerHTML = `
+        <label for="start">Start Location:</label>
+        <input type="text" class="start location-input" placeholder="Enter start location" oninput="initAutocomplete(this)">
+
+        <label for="end">End Location:</label>
+        <input type="text" class="end location-input" placeholder="Enter end location" oninput="initAutocomplete(this)">
+
+        <label for="mode">Mode of Transportation:</label>
+        <select class="mode" onchange="toggleTransitType(this)">
+            <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
+            <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
+            <option value="walking">Walking</option>
+            <option value="regularCar">Regular Automobile</option>
+        </select>
+
+        <div class="transit-type" style="display: none;">
+            <label for="transitType">Transit Type:</label>
+            <select class="transitType">
+                <option value="bus">Bus</option>
+                <option value="train">Train</option>
+                <option value="subway">Subway</option>
+            </select>
+        </div>
+        <button type="button" class="remove-leg" onclick="removeCommuteLeg(this)">Remove Leg</button>
+    `;
+    commuteLegs.appendChild(newLeg);
 }
 
-// Find the closest comparison item
-function findClosestComparison(totalEmissions) {
-    let closestItem = everydayItems[0];
-    let smallestDifference = Math.abs(totalEmissions - closestItem.footprint);
+// Function to remove a specific commute leg
+function removeCommuteLeg(button) {
+    const commuteLeg = button.closest('.commute-leg');
+    commuteLeg.remove();
+}
 
-    for (const item of everydayItems) {
-        const difference = Math.abs(totalEmissions - item.footprint);
-        if (difference < smallestDifference) {
-            smallestDifference = difference;
-            closestItem = item;
-        }
-    }
-    return closestItem;
+// Toggle visibility of transit type selection based on mode
+function toggleTransitType(select) {
+    const transitTypeDiv = select.closest('.commute-leg').querySelector('.transit-type');
+    transitTypeDiv.style.display = select.value === 'publicTransport' ? 'block' : 'none';
 }
 
 // Get coordinates from Mapbox Geocoding API
@@ -106,7 +125,33 @@ async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
     return distance;
 }
 
-// Calculate total emissions and display results
+// Calculate cumulative savings over time
+function calculateSavingsOverTime(currentEmissions, greenEmissions) {
+    const savingsPerTrip = currentEmissions - greenEmissions;
+    return {
+        weekly: savingsPerTrip * 5,
+        monthly: savingsPerTrip * 20,
+        yearly: savingsPerTrip * 240,
+        fiveYears: savingsPerTrip * 1200
+    };
+}
+
+// Find the closest comparison item
+function findClosestComparison(totalEmissions) {
+    let closestItem = everydayItems[0];
+    let smallestDifference = Math.abs(totalEmissions - closestItem.footprint);
+
+    for (const item of everydayItems) {
+        const difference = Math.abs(totalEmissions - item.footprint);
+        if (difference < smallestDifference) {
+            smallestDifference = difference;
+            closestItem = item;
+        }
+    }
+    return closestItem;
+}
+
+// Main function to calculate total emissions and display results
 async function calculateImpact() {
     const commuteLegElements = document.querySelectorAll('.commute-leg');
     let totalEmissions = 0;
