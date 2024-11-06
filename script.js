@@ -11,11 +11,11 @@ const map = new mapboxgl.Map({
 
 // Emission factors in kg CO₂ per km for each mode of transport
 const emissionFactors = {
-    electricVehicle: 0.02,    // Electric vehicle emissions
-    bus: 0.1,                 // Bus emissions
-    train: 0.05,              // Train emissions
-    subway: 0.06,             // Subway emissions
-    regularCar: 0.2           // Regular car emissions
+    electricVehicle: 0.02,
+    bus: 0.1,
+    train: 0.05,
+    subway: 0.06,
+    regularCar: 0.2
 };
 
 // Function to add address prediction
@@ -72,8 +72,41 @@ function addCommuteLeg() {
                 <option value="subway">Subway</option>
             </select>
         </div>
+        <button type="button" class="remove-leg" onclick="removeCommuteLeg(this)">Remove Leg</button>
     `;
     commuteLegs.appendChild(newLeg);
+}
+
+// Function to remove a specific commute leg
+function removeCommuteLeg(button) {
+    const commuteLeg = button.closest('.commute-leg');
+    commuteLeg.remove();
+}
+
+// Function to reset the form and map
+function resetForm() {
+    // Clear all commute legs
+    document.getElementById('commuteLegs').innerHTML = `
+        <h3>Commute Legs</h3>
+    `;
+    addCommuteLeg(); // Add an initial commute leg
+
+    // Clear results and reset map
+    document.getElementById('results').innerHTML = "";
+    removeAllMapLayers();
+}
+
+// Function to remove all map layers (routes and markers)
+function removeAllMapLayers() {
+    const layers = map.getStyle().layers;
+    if (layers) {
+        layers.forEach(layer => {
+            if (layer.id.startsWith('route-')) {
+                map.removeLayer(layer.id);
+                map.removeSource(layer.id);
+            }
+        });
+    }
 }
 
 // Function to get coordinates from an address using Mapbox Geocoding API
