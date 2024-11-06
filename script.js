@@ -1,5 +1,4 @@
 const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
-const carbonInterfaceApiKey = 'VyVFtne2m9RXuiTFwoyhA';
 mapboxgl.accessToken = mapboxToken;
 
 // Initialize Mapbox map
@@ -10,6 +9,15 @@ const map = new mapboxgl.Map({
     zoom: 3
 });
 
+// Emission factors in kg CO₂ per km for each mode of transport
+const emissionFactors = {
+    electricVehicle: 0.02,    // Electric vehicle emissions
+    bus: 0.1,                 // Bus emissions
+    train: 0.05,              // Train emissions
+    subway: 0.06,             // Subway emissions
+    regularCar: 0.2           // Regular car emissions
+};
+
 // Function to add address prediction
 function initAutocomplete(input) {
     input.addEventListener('input', async () => {
@@ -18,7 +26,6 @@ function initAutocomplete(input) {
         const response = await fetch(url);
         const data = await response.json();
         
-        // Clear any existing suggestions
         const datalist = document.createElement('datalist');
         datalist.id = `autocomplete-${input.classList[0]}`;
         data.features.forEach((feature) => {
@@ -76,20 +83,19 @@ async function getCoordinates(location) {
         const response = await fetch(url);
         const data = await response.json();
         
-        // Check if data has results and return coordinates, else log an error
         if (data.features && data.features.length > 0) {
             return data.features[0].geometry.coordinates; // returns [longitude, latitude]
         } else {
             console.error(`No coordinates found for location: ${location}`);
-            return null; // or handle it as needed
+            return null;
         }
     } catch (error) {
         console.error("Error fetching coordinates:", error);
-        return null; // or handle the error accordingly
+        return null;
     }
 }
 
-// Function to calculate route distance between two coordinates using Mapbox Directions API
+// Function to calculate route distance and plot it on the map
 async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
     const mapboxMode = mode === 'electricVehicle' ? 'cycling' :
                        mode === 'publicTransport' ? 'driving' :
@@ -129,41 +135,6 @@ async function getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor) {
     return distance;
 }
 
-// Calculate emissions based on the selected transit type
-async function calculateEmissions(distance, mode, transitType = null) {
-    let vehicleType;
-    if (mode === 'publicTransport') {
-        vehicleType = transitType === 'train' ? 'train' : 
-                      transitType === 'subway' ? 'subway' : 'bus';
-    } else if (mode === 'electricVehicle') {
-        vehicleType = 'electric_vehicle';
-    } else if (mode === 'regularCar') {
-        vehicleType = 'passenger_vehicle';
-    } else {
-        return 0; // No emissions for walking
-    }
-
-    const url = 'https://www.carboninterface.com/api/v1/estimates';
-    const body = {
-        type: 'vehicle',
-        distance_unit: 'km',
-        distance_value: distance,
-        vehicle_model_id: vehicleType
-    };
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${carbonInterfaceApiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    const data = await response.json();
-    return data.data.attributes.carbon_kg; // Emissions in kg CO2
-}
-
 // Main function to calculate total emissions
 async function calculateImpact() {
     const commuteLegElements = document.querySelectorAll('.commute-leg');
@@ -175,23 +146,36 @@ async function calculateImpact() {
         const mode = leg.querySelector('.mode').value;
         const transitType = leg.querySelector('.transitType') ? leg.querySelector('.transitType').value : null;
 
+        // Determine the specific emission factor for this leg
+        let emissionFactor;
+        if (mode === 'publicTransport') {
+            emissionFactor = emissionFactors[transitType];
+        } else {
+            emissionFactor = emissionFactors[mode];
+        }
+
+        if (!emissionFactor) {
+            console.warn(`No emission factor found for mode: ${mode}`);
+            continue;
+        }
+
         // Fetch coordinates and calculate route distance
         const startCoords = await getCoordinates(startLocation);
-        if (!startCoords) continue; // Skip if coordinates are not available
+        if (!startCoords) continue;
 
         const endCoords = await getCoordinates(endLocation);
-        if (!endCoords) continue; // Skip if coordinates are not available
+        if (!endCoords) continue;
 
         const legColor = `#${Math.floor(Math.random()*16777215).toString(16)}`; // Random color for each leg
         const distance = await getRouteDistanceAndPlot(startCoords, endCoords, mode, legColor);
 
-        // Calculate emissions with transit type accounted for
-        const emissions = await calculateEmissions(distance, mode, transitType);
+        // Calculate emissions
+        const emissions = distance * emissionFactor;
         totalEmissions += emissions;
     }
 
     // Display results
     document.getElementById('results').innerHTML = `
-        <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO2</p>
+        <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
     `;
 }
