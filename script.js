@@ -15,7 +15,8 @@ const emissionFactors = {
     bus: 0.1,
     train: 0.05,
     subway: 0.06,
-    regularCar: 0.2
+    regularCar: 0.2,
+    walking: 0.0
 };
 
 // Function to add address prediction
