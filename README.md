@@ -41,7 +41,7 @@ The Green Commute is a tool that helps users measure the environmental impact of
    - Push the repository to GitHub and enable GitHub Pages in the repository settings.
 
 ## Usage
-1. Open the [Green Commute Calculator](https://yourusername.github.io/green-commute-calculator).
+1. Open the [Green Commute Calculator](https://jrm328.github.io/green-commute/).
 2. Enter the starting point and distances for each leg of your commute.
 3. Click "Calculate Impact" to view the total emissions and breakdown by commute mode.
 
