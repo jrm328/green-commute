@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Commute</title>
+    <title>Green Commute Calculator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Green Commute Calculator</h1>
     <form id="commuteForm">
-        <label for="start">Starting Location:</label>
-        <input type="text" id="start" placeholder="Enter start location">
-
-        <label for="destination">Destination:</label>
-        <input type="text" id="destination" placeholder="Enter destination">
-
         <div id="commuteLegs">
             <h3>Commute Legs</h3>
             <div class="commute-leg">
+                <label for="start">Start Location:</label>
+                <input type="text" class="start" placeholder="Enter start location">
+
+                <label for="end">End Location:</label>
+                <input type="text" class="end" placeholder="Enter end location">
+
                 <label for="mode">Mode of Transportation:</label>
                 <select class="mode">
                     <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
@@ -25,16 +25,16 @@
                     <option value="walking">Walking</option>
                     <option value="regularCar">Regular Automobile</option>
                 </select>
-
-                <label for="timeSpent">Time Spent (minutes):</label>
-                <input type="number" class="timeSpent" placeholder="Enter time in minutes">
             </div>
         </div>
 
         <button type="button" onclick="addCommuteLeg()">Add Another Leg</button>
         <button type="button" onclick="calculateImpact()">Calculate Impact</button>
     </form>
+    <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
     <div id="results"></div>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
     <script src="script.js"></script>
 </body>
 </html>
