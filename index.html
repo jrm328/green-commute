@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Commute</title>
+    <title>Green Commute Calculator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,11 +34,13 @@
                         <option value="subway">Subway</option>
                     </select>
                 </div>
+                <button type="button" class="remove-leg" onclick="removeCommuteLeg(this)">Remove Leg</button>
             </div>
         </div>
 
         <button type="button" onclick="addCommuteLeg()">Add Another Leg</button>
         <button type="button" onclick="calculateImpact()">Calculate Impact</button>
+        <button type="button" onclick="resetForm()">Reset Form</button>
     </form>
     <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
     <div id="results"></div>
