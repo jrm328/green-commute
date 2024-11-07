@@ -34,39 +34,41 @@ const greenOptionEmissionFactor = emissionFactors.walking;
 function addCommuteLeg() {
     const commuteLegs = document.getElementById('commuteLegs');
     const newLeg = document.createElement('div');
-    newLeg.classList.add('commute-leg', 'row', 'g-3', 'mb-3');
+    newLeg.classList.add('commute-leg', 'card', 'mb-3', 'p-3');
     newLeg.innerHTML = `
-        <div class="col-md-4">
-            <label for="start" class="form-label">Start Location:</label>
-            <mapbox-address-autofill access-token="${mapboxToken}">
-                <input type="text" class="form-control start location-input" placeholder="Enter start location" autocomplete="shipping address-line1">
-            </mapbox-address-autofill>
-        </div>
-        <div class="col-md-4">
-            <label for="end" class="form-label">End Location:</label>
-            <mapbox-address-autofill access-token="${mapboxToken}">
-                <input type="text" class="form-control end location-input" placeholder="Enter end location" autocomplete="shipping address-line1">
-            </mapbox-address-autofill>
-        </div>
-        <div class="col-md-4">
-            <label for="mode" class="form-label">Mode of Transportation:</label>
-            <select class="form-select mode" onchange="toggleTransitType(this)">
-                <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
-                <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
-                <option value="walking">Walking</option>
-                <option value="regularCar">Regular Automobile</option>
-            </select>
-        </div>
-        <div class="col-md-4 transit-type mt-3" style="display: none;">
-            <label for="transitType" class="form-label">Transit Type:</label>
-            <select class="form-select transitType">
-                <option value="bus">Bus</option>
-                <option value="train">Train</option>
-                <option value="subway">Subway</option>
-            </select>
-        </div>
-        <div class="col-md-4 mt-3">
-            <button type="button" class="btn btn-danger" onclick="removeCommuteLeg(this)">Remove Leg</button>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="start" class="form-label">Start Location:</label>
+                <mapbox-address-autofill access-token="${mapboxToken}">
+                    <input type="text" class="form-control start location-input" placeholder="Enter start location" autocomplete="shipping address-line1">
+                </mapbox-address-autofill>
+            </div>
+            <div class="col-md-4">
+                <label for="end" class="form-label">End Location:</label>
+                <mapbox-address-autofill access-token="${mapboxToken}">
+                    <input type="text" class="form-control end location-input" placeholder="Enter end location" autocomplete="shipping address-line1">
+                </mapbox-address-autofill>
+            </div>
+            <div class="col-md-4">
+                <label for="mode" class="form-label">Mode of Transportation:</label>
+                <select class="form-select mode" onchange="toggleTransitType(this)">
+                    <option value="electricVehicle">Electric Vehicle (Scooter/Bike/Car)</option>
+                    <option value="publicTransport">Public Transportation (Bus/Train/Subway)</option>
+                    <option value="walking">Walking</option>
+                    <option value="regularCar">Regular Automobile</option>
+                </select>
+            </div>
+            <div class="col-md-4 transit-type mt-3" style="display: none;">
+                <label for="transitType" class="form-label">Transit Type:</label>
+                <select class="form-select transitType">
+                    <option value="bus">Bus</option>
+                    <option value="train">Train</option>
+                    <option value="subway">Subway</option>
+                </select>
+            </div>
+            <div class="col-md-4 mt-3">
+                <button type="button" class="btn btn-danger" onclick="removeCommuteLeg(this)">Remove Leg</button>
+            </div>
         </div>
     `;
     commuteLegs.appendChild(newLeg);
@@ -88,10 +90,12 @@ function removeCommuteLeg(button) {
 
 // Reset form, map, and results
 function resetForm() {
-    document.getElementById('commuteLegs').innerHTML = '';
-    document.getElementById('results').innerHTML = '';
-    removeAllMapLayers();
-    addCommuteLeg(); // Add initial commute leg
+    if (confirm("Are you sure you want to reset the form? This will clear all entered data.")) {
+        document.getElementById('commuteLegs').innerHTML = '';
+        document.getElementById('results').innerHTML = '';
+        removeAllMapLayers();
+        addCommuteLeg(); // Add initial commute leg
+    }
 }
 
 // Remove all layers from the map
@@ -228,18 +232,25 @@ async function calculateImpact() {
     const closestItem = findClosestComparison(totalEmissions);
     const savings = calculateSavingsOverTime(totalEmissions, greenEmissions);
 
-    document.getElementById('results').innerHTML = `
-        <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
-        <p>That's roughly equivalent to the carbon footprint of a ${closestItem.name} at ${closestItem.footprint} kg CO₂.</p>
-        <p>Potential savings if you continue to use this greener commute option:</p>
-        <ul>
-            <li>Weekly: ${savings.weekly.toFixed(2)} kg CO₂</li>
-            <li>Monthly: ${savings.monthly.toFixed(2)} kg CO₂</li>
-            <li>Yearly: ${savings.yearly.toFixed(2)} kg CO₂</li>
-            <li>Five Years: ${savings.fiveYears.toFixed(2)} kg CO₂</li>
+document.getElementById('results').innerHTML = `
+    <div class="card p-3">
+        <h5>Total Emissions:</h5>
+        <p class="display-6">${totalEmissions.toFixed(2)} kg CO₂</p>
+        
+        <h5>Equivalent to:</h5>
+        <p class="badge bg-info text-dark">${closestItem.footprint} kg CO₂ for a ${closestItem.name}</p>
+        
+        <h5>Potential Savings (if you continue this option):</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Weekly: <span class="badge bg-success">${savings.weekly.toFixed(2)} kg CO₂</span></li>
+            <li class="list-group-item">Monthly: <span class="badge bg-success">${savings.monthly.toFixed(2)} kg CO₂</span></li>
+            <li class="list-group-item">Yearly: <span class="badge bg-success">${savings.yearly.toFixed(2)} kg CO₂</span></li>
+            <li class="list-group-item">Five Years: <span class="badge bg-success">${savings.fiveYears.toFixed(2)} kg CO₂</span></li>
         </ul>
-        <p>By choosing greener commute options, you reduce your carbon footprint and contribute to a healthier planet, slowing the progression of global warming.</p>
-    `;
+        
+        <p class="text-muted mt-3">By choosing greener commute options, you reduce your carbon footprint and contribute to a healthier planet, slowing the progression of global warming.</p>
+    </div>
+`;
 }
 
 // Initial call to add a single commute leg on load
