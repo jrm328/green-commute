@@ -1,3 +1,4 @@
+// This is updated
 const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
 mapboxgl.accessToken = mapboxToken;
 
@@ -69,12 +70,41 @@ function addCommuteLeg() {
         </div>
     `;
     commuteLegs.appendChild(newLeg);
+
+    // Add event listener to update the input field with the selected address
+    newLeg.querySelectorAll('mapbox-address-autofill').forEach((autofill) => {
+        autofill.addEventListener('retrieve', (event) => {
+            const input = event.target.querySelector('input');
+            input.value = event.detail.features[0].place_name;
+        });
+    });
 }
 
 // Function to remove a specific commute leg
 function removeCommuteLeg(button) {
     const commuteLeg = button.closest('.commute-leg');
     commuteLeg.remove();
+}
+
+// Reset form, map, and results
+function resetForm() {
+    document.getElementById('commuteLegs').innerHTML = '';
+    document.getElementById('results').innerHTML = '';
+    removeAllMapLayers();
+    addCommuteLeg(); // Add initial commute leg
+}
+
+// Remove all layers from the map
+function removeAllMapLayers() {
+    const layers = map.getStyle().layers;
+    if (layers) {
+        layers.forEach(layer => {
+            if (layer.id.startsWith('route-')) {
+                map.removeLayer(layer.id);
+                map.removeSource(layer.id);
+            }
+        });
+    }
 }
 
 // Toggle visibility of transit type selection based on mode
@@ -201,7 +231,7 @@ async function calculateImpact() {
     document.getElementById('results').innerHTML = `
         <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
         <p>That's roughly equivalent to the carbon footprint of ${closestItem.footprint} kg CO₂ for a ${closestItem.name}.</p>
-        <p>Potential savings if you contine this commute option:</p>
+        <p>Potential savings if you switch to a greener option:</p>
         <ul>
             <li>Weekly: ${savings.weekly.toFixed(2)} kg CO₂</li>
             <li>Monthly: ${savings.monthly.toFixed(2)} kg CO₂</li>
@@ -211,3 +241,6 @@ async function calculateImpact() {
         <p>By choosing greener commute options, you reduce your carbon footprint and contribute to a healthier planet, slowing the progression of global warming.</p>
     `;
 }
+
+// Initial call to add a single commute leg on load
+addCommuteLeg();
