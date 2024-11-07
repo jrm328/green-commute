@@ -1,4 +1,4 @@
-// This is updated
+// This is new
 const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
 mapboxgl.accessToken = mapboxToken;
 
@@ -71,7 +71,7 @@ function addCommuteLeg() {
     `;
     commuteLegs.appendChild(newLeg);
 
-    // Add event listener to update the input field with the selected address
+    // Add event listener to autofill input fields on address selection
     newLeg.querySelectorAll('mapbox-address-autofill').forEach((autofill) => {
         autofill.addEventListener('retrieve', (event) => {
             const input = event.target.querySelector('input');
@@ -243,4 +243,6 @@ async function calculateImpact() {
 }
 
 // Initial call to add a single commute leg on load
-addCommuteLeg();
+document.addEventListener('DOMContentLoaded', () => {
+    addCommuteLeg();
+});
