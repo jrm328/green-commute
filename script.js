@@ -1,11 +1,11 @@
 // This is new
-const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNmRueWVmMDRwMDJpcHRydml6bTl4ZCJ9.SfIaFBVJwd-a-jOfE6bfrQ';
+const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
 mapboxgl.accessToken = mapboxToken;
 
 // Initialize Mapbox map
 const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11', // Simple, built-in style
+    style: 'mapbox://styles/mapbox/light-v11', // Simple, built-in style
     center: [-98.5795, 39.8283],
     zoom: 3
 });
@@ -230,8 +230,8 @@ async function calculateImpact() {
 
     document.getElementById('results').innerHTML = `
         <p>Total Emissions: ${totalEmissions.toFixed(2)} kg CO₂</p>
-        <p>That's roughly equivalent to the carbon footprint of ${closestItem.footprint} kg CO₂ for a ${closestItem.name}.</p>
-        <p>Potential savings if you switch to a greener option:</p>
+        <p>That's roughly equivalent to the carbon footprint of a ${closestItem.name} at ${closestItem.footprint} kg CO₂.</p>
+        <p>Potential savings if you continue to use this greener commute option:</p>
         <ul>
             <li>Weekly: ${savings.weekly.toFixed(2)} kg CO₂</li>
             <li>Monthly: ${savings.monthly.toFixed(2)} kg CO₂</li>
