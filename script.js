@@ -1,5 +1,5 @@
 // This is new
-const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNXkxaHJjMGZmZjJxcHh4emg2ejBvbiJ9.a2MC4kDby920S8RkB9R2rQ';
+const mapboxToken = 'pk.eyJ1Ijoiam1jbGF1Y2hsYW4iLCJhIjoiY20zNmRueWVmMDRwMDJpcHRydml6bTl4ZCJ9.SfIaFBVJwd-a-jOfE6bfrQ';
 mapboxgl.accessToken = mapboxToken;
 
 // Initialize Mapbox map
